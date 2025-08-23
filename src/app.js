@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import fileUpload from "express-fileupload";
 import cors from "cors";
+import createHttpError from "http-errors";
 
 //dotEnv config
 dotenv.config();
@@ -23,10 +24,10 @@ if (process.env.NODE_ENV !== "production") {
 app.use(helmet());
 
 //Parse json request url
-app.use(express().json());
+app.use(express.json());
 
 //Parse json request body
-app.use(express().urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 //sanitize request data
 app.use(mongoSanitize());
@@ -48,7 +49,22 @@ app.use(
 app.use(cors());
 
 app.post("/test", (req, res) => {
-  res.send(req.body);
+  throw createHttpError.BadRequest("this route has an error");
+});
+
+app.use(async (req, res, next) => {
+  next(createHttpError.NotFound("This route does not exist."));
+});
+
+//error handling
+app.use(async (err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send({
+    error: {
+      status: err.status || 500,
+      message: err.message,
+    },
+  });
 });
 
 export default app;
