@@ -1,7 +1,7 @@
-import { createUser, signUser } from "../services/auth.service.js";
-import { findUser } from "../services/user.service.js";
-import { generateToken, verifyToken } from "../services/token.service.js";
 import createHttpError from "http-errors";
+import { createUser, signUser } from "../services/auth.service.js";
+import { generateToken, verifyToken } from "../services/token.service.js";
+import { findUser } from "../services/user.service.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -23,27 +23,28 @@ export const register = async (req, res, next) => {
       "30d",
       process.env.REFRESH_TOKEN_SECRET
     );
+
     res.cookie("refreshtoken", refresh_token, {
       httpOnly: true,
       path: "/api/v1/auth/refreshtoken",
-      maxAge: 30 * 24 * 60 * 60 * 1000, //30 day
+      maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
     });
+
     res.json({
       message: "register success.",
-      access_token,
       user: {
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         picture: newUser.picture,
         status: newUser.status,
+        access_token,
       },
     });
   } catch (error) {
     next(error);
   }
 };
-
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -58,19 +59,38 @@ export const login = async (req, res, next) => {
       "30d",
       process.env.REFRESH_TOKEN_SECRET
     );
+
+    res.cookie("refreshtoken", refresh_token, {
+      httpOnly: true,
+      path: "/api/v1/auth/refreshtoken",
+      maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
+    });
+
+    res.json({
+      message: "register success.",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+        status: user.status,
+        access_token,
+      },
+    });
   } catch (error) {
     next(error);
   }
 };
-
 export const logout = async (req, res, next) => {
   try {
-    res.json({ message: "logged out !" });
+    res.clearCookie("refreshtoken", { path: "/api/v1/auth/refreshtoken" });
+    res.json({
+      message: "logged out !",
+    });
   } catch (error) {
     next(error);
   }
 };
-
 export const refreshToken = async (req, res, next) => {
   try {
     const refresh_token = req.cookies.refreshtoken;
@@ -86,13 +106,13 @@ export const refreshToken = async (req, res, next) => {
       process.env.ACCESS_TOKEN_SECRET
     );
     res.json({
-      access_token,
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         picture: user.picture,
         status: user.status,
+        access_token,
       },
     });
   } catch (error) {

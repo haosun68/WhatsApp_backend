@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import validator from "validator";
-import { UserModel } from "../models/index.js";
 import bcrypt from "bcrypt";
+import { UserModel } from "../models/index.js";
 
 //env variables
 const { DEFAULT_PICTURE, DEFAULT_STATUS } = process.env;
@@ -15,19 +15,22 @@ export const createUser = async (userData) => {
   }
 
   //check name length
-  if (!validator.isLength(name, { min: 2, max: 16 })) {
+  if (
+    !validator.isLength(name, {
+      min: 2,
+      max: 16,
+    })
+  ) {
     throw createHttpError.BadRequest(
       "Plase make sure your name is between 2 and 16 characters."
     );
   }
 
   //Check status length
-  if (status) {
-    if (status.length > 64) {
-      throw createHttpError.BadRequest(
-        "Please make sure your status is less than 64 characters."
-      );
-    }
+  if (status && status.length > 64) {
+    throw createHttpError.BadRequest(
+      "Please make sure your status is less than 64 characters."
+    );
   }
 
   //check if email address is valid
@@ -41,12 +44,17 @@ export const createUser = async (userData) => {
   const checkDb = await UserModel.findOne({ email });
   if (checkDb) {
     throw createHttpError.Conflict(
-      "Please try again with a different email address, this email already exist"
+      "Please try again with a different email address, this email already exist."
     );
   }
 
-  //check password Length
-  if (!validator.isLength(password, { min: 6, max: 128 })) {
+  //check password length
+  if (
+    !validator.isLength(password, {
+      min: 6,
+      max: 128,
+    })
+  ) {
     throw createHttpError.BadRequest(
       "Please make sure your password is between 6 and 128 characters."
     );
